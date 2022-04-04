@@ -1,0 +1,79 @@
+// In this code we are sending data from bluetooth device and displaying it to oled SSD1306.
+// I2C communication
+//and also demonstrate that SerialBT have the same functionalities of a normal Serial
+
+#include "BluetoothSerial.h"
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET     4
+#define SCREEN_ADDRESS 0x3C
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+#define NUMFLAKES     10
+#define LOGO_HEIGHT   16
+#define LOGO_WIDTH    16
+//void displaytext();
+BluetoothSerial SerialBT;
+char serInString[100];
+int i = 0;
+//char strArray;
+void readBTString(char *strArray) {
+int i=0;
+  if (SerialBT.available()) {
+    while (SerialBT.available()>0) {
+      strArray[i] = SerialBT.read();
+      i++;
+    }
+  }
+  delay(20);
+}
+void printSerBTString(char *strArray) {
+      int i=0;
+   if (strArray[i] != 0) {
+    //Serial.println(strArray);
+    display.clearDisplay(); 
+            while(strArray[i] != 0) {
+    int y_axis=0;
+  display.setTextSize(2); 
+  display.setTextColor(SSD1306_WHITE);
+  if(i<12){
+    y_axis= y_axis;
+  }
+  else if((i%12)==0){
+    y_axis= y_axis+10;}
+  display.setCursor(i*10, y_axis);
+  display.println(strArray[i]);
+  Serial.print( strArray[i] );
+  display.display();
+            strArray[i] = 0;            
+            i++;
+    }
+   }
+  }
+boolean isStringEmpty(char *strArray) {
+  if (strArray[0] == 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+void setup() {
+  Serial.begin(115200);
+  SerialBT.begin("Haider55"); //Bluetooth device name
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+  Serial.println("The device started, now you can pair it with bluetooth!");
+}
+
+void loop() {
+  readBTString(serInString);
+  if ( isStringEmpty(serInString) == false) { //this check is optional
+        display.clearDisplay(); 
+    printSerBTString(serInString);
+  }
+}
